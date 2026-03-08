@@ -26,6 +26,25 @@
   --text2: #8b97b0;
   --text3: #556180;
 }
+[data-theme="light"] {
+  --bg: #f5f6fa;
+  --card: #ffffff;
+  --card-border: #e2e5ee;
+  --surface: #eef0f6;
+  --accent: #d48a10;
+  --accent-dim: rgba(212,138,16,0.1);
+  --blue: #2b6ce6;
+  --blue-dim: rgba(43,108,230,0.08);
+  --green: #16a368;
+  --green-dim: rgba(22,163,104,0.08);
+  --red: #dc3545;
+  --red-dim: rgba(220,53,69,0.08);
+  --purple: #7c4dff;
+  --purple-dim: rgba(124,77,255,0.08);
+  --text: #1a1f2e;
+  --text2: #4a5568;
+  --text3: #8793a6;
+}
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   background:var(--bg);color:var(--text);
@@ -163,6 +182,32 @@ input[type=number]:focus{border-color:var(--accent)}
   .stats{gap:8px}
   .stat-value{font-size:17px}
 }
+
+/* Light mode overrides */
+[data-theme="light"] body{
+  background-image:radial-gradient(circle at 20% 80%, rgba(43,108,230,0.04) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(212,138,16,0.04) 0%, transparent 50%);
+}
+[data-theme="light"] input[type=range]{background:var(--card-border)}
+[data-theme="light"] input[type=range]::-webkit-slider-thumb{background:var(--card);border-color:var(--accent)}
+[data-theme="light"] input[type=number]{background:var(--surface);border-color:var(--card-border);color:var(--text)}
+[data-theme="light"] .card{box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+[data-theme="light"] .scenario-btn{background:var(--card)}
+[data-theme="light"] .nav{background:var(--card)}
+
+/* Theme toggle */
+.theme-toggle{
+  position:absolute;top:50%;right:16px;transform:translateY(-50%);
+  width:44px;height:26px;border-radius:13px;border:none;cursor:pointer;
+  background:var(--surface);transition:all .25s;padding:3px;
+  display:flex;align-items:center;z-index:10;
+}
+.theme-toggle .knob{
+  width:20px;height:20px;border-radius:50%;
+  background:var(--accent);transition:all .25s;
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+}
+[data-theme="light"] .theme-toggle .knob{transform:translateX(18px)}
 </style>
 </head>
 <body>
@@ -170,6 +215,9 @@ input[type=number]:focus{border-color:var(--accent)}
 <div class="header">
   <h1>Bond Lab</h1>
   <p>Interactive Bond Education & Calculator</p>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+    <div class="knob" id="themeKnob">🌙</div>
+  </button>
 </div>
 
 <div class="nav" id="nav">
@@ -402,6 +450,24 @@ input[type=number]:focus{border-color:var(--accent)}
 </div><!-- end container -->
 
 <script>
+// ============================================================
+//  THEME
+// ============================================================
+function toggleTheme() {
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  html.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  document.getElementById('themeKnob').textContent = isLight ? '🌙' : '☀️';
+  localStorage.setItem('bondlab-theme', isLight ? 'dark' : 'light');
+}
+(function() {
+  const saved = localStorage.getItem('bondlab-theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    setTimeout(() => { document.getElementById('themeKnob').textContent = '☀️'; }, 0);
+  }
+})();
+
 // ============================================================
 //  STATE
 // ============================================================
