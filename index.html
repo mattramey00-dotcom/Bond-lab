@@ -197,10 +197,9 @@ input[type=number]:focus{border-color:var(--accent)}
 
 /* Theme toggle */
 .theme-toggle{
-  position:absolute;top:50%;right:16px;transform:translateY(-50%);
   width:44px;height:26px;border-radius:13px;border:none;cursor:pointer;
   background:var(--surface);transition:all .25s;padding:3px;
-  display:flex;align-items:center;z-index:10;
+  display:flex;align-items:center;z-index:10;flex-shrink:0;
 }
 .theme-toggle .knob{
   width:20px;height:20px;border-radius:50%;
@@ -213,11 +212,18 @@ input[type=number]:focus{border-color:var(--accent)}
 <body>
 
 <div class="header">
-  <h1>Bond Lab</h1>
-  <p>Interactive Bond Education & Calculator</p>
-  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
-    <div class="knob" id="themeKnob">🌙</div>
-  </button>
+  <div style="display:flex;align-items:center;justify-content:center;gap:12px;position:relative">
+    <div style="flex:1"></div>
+    <div style="text-align:center">
+      <h1>Bond Lab</h1>
+      <p>Interactive Bond Education & Calculator</p>
+    </div>
+    <div style="flex:1;display:flex;justify-content:flex-end">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+        <div class="knob" id="themeKnob">🌙</div>
+      </button>
+    </div>
+  </div>
 </div>
 
 <div class="nav" id="nav">
