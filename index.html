@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Bond Lab — Interactive Bond Education</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c16;
+  --card: #0f1629;
+  --card-border: #1a2340;
+  --surface: #151d35;
+  --accent: #f0a830;
+  --accent-dim: rgba(240,168,48,0.12);
+  --blue: #4d8ef7;
+  --blue-dim: rgba(77,142,247,0.12);
+  --green: #22c983;
+  --green-dim: rgba(34,201,131,0.12);
+  --red: #f05454;
+  --red-dim: rgba(240,84,84,0.12);
+  --purple: #9b6dff;
+  --purple-dim: rgba(155,109,255,0.12);
+  --text: #e8edf5;
+  --text2: #8b97b0;
+  --text3: #556180;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'DM Sans',system-ui,sans-serif;
+  min-height:100vh;
+  background-image:radial-gradient(circle at 20% 80%, rgba(77,142,247,0.04) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(240,168,48,0.04) 0%, transparent 50%);
+}
+input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:var(--surface);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid var(--accent);background:var(--bg)}
+input[type=number]{width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--card-border);background:var(--surface);color:var(--text);font-size:14px;font-family:monospace;outline:none}
+input[type=number]:focus{border-color:var(--accent)}
+
+/* Header */
+.header{padding:28px 20px 18px;text-align:center;border-bottom:1px solid var(--card-border);position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:300px;height:120px;background:radial-gradient(ellipse,rgba(240,168,48,0.08),transparent 70%);pointer-events:none}
+.header h1{font-family:'Instrument Serif',Georgia,serif;font-size:32px;font-weight:400;color:var(--accent);letter-spacing:-0.5px;position:relative}
+.header p{font-size:12px;color:var(--text3);margin-top:4px;letter-spacing:0.5px;position:relative}
+
+/* Nav */
+.nav{display:flex;gap:4px;padding:10px 12px;overflow-x:auto;border-bottom:1px solid var(--card-border);-webkit-overflow-scrolling:touch}
+.nav-btn{padding:9px 16px;border-radius:8px;border:none;cursor:pointer;background:transparent;color:var(--text3);font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;transition:all .15s}
+.nav-btn:hover{color:var(--text2);background:var(--surface)}
+.nav-btn.active{background:var(--accent-dim);color:var(--accent)}
+
+/* Container */
+.container{max-width:720px;margin:0 auto;padding:16px}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:22px;margin-bottom:16px;border-top:3px solid var(--accent);position:relative;overflow:hidden}
+.card::after{content:'';position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle,rgba(255,255,255,0.01),transparent 70%);pointer-events:none}
+.card-title{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.card-title span:first-child{font-size:18px}
+.card-title span:last-child{font-size:15px;font-weight:700;letter-spacing:-0.3px}
+.card.blue{border-top-color:var(--blue)}
+.card.green{border-top-color:var(--green)}
+.card.red{border-top-color:var(--red)}
+.card.purple{border-top-color:var(--purple)}
+
+/* Slider */
+.slider-row{margin-bottom:18px}
+.slider-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.slider-label label{font-size:12px;font-weight:600;color:var(--text2)}
+.slider-label .val{font-size:15px;font-weight:800;font-family:monospace}
+.slider-sub{font-size:10px;color:var(--text3);margin-bottom:6px}
+.slider-range{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:3px}
+
+/* Stats */
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{text-align:center;flex:1;min-width:90px}
+.stat-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.stat-value{font-size:21px;font-weight:800;font-family:monospace;line-height:1.1}
+.stat-sub{font-size:10px;color:var(--text3);margin-top:3px}
+
+/* Analogy */
+.analogy{background:var(--accent-dim);border-radius:10px;padding:13px 16px;border-left:3px solid var(--accent);margin-top:14px}
+.analogy-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:5px}
+.analogy-text{font-size:12px;color:var(--text2);line-height:1.7}
+
+/* Info box */
+.info-box{padding:13px 16px;background:var(--surface);border-radius:10px;font-size:11px;color:var(--text3);line-height:1.7;margin-top:14px}
+.info-box strong{color:var(--text2)}
+
+/* Alert boxes */
+.alert{border-radius:10px;padding:12px 16px;margin-top:10px;border-left:3px solid}
+.alert-title{font-size:12px;font-weight:700;margin-bottom:4px}
+.alert-text{font-size:11px;color:var(--text2);line-height:1.7}
+.alert.red{background:var(--red-dim);border-color:var(--red)}.alert.red .alert-title{color:var(--red)}
+.alert.blue{background:var(--blue-dim);border-color:var(--blue)}.alert.blue .alert-title{color:var(--blue)}
+.alert.amber{background:var(--accent-dim);border-color:var(--accent)}.alert.amber .alert-title{color:var(--accent)}
+
+/* Scenario grid */
+.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scenario-btn{padding:11px 13px;border-radius:10px;border:1.5px solid var(--card-border);background:var(--surface);cursor:pointer;text-align:left;transition:all .15s;font-family:inherit}
+.scenario-btn:hover{border-color:var(--text3)}
+.scenario-btn.active{border-color:var(--accent);background:var(--accent-dim)}
+.scenario-btn .icon{font-size:16px;margin-bottom:3px}
+.scenario-btn .name{font-size:11px;font-weight:700;color:var(--text)}
+.scenario-btn.active .name{color:var(--accent)}
+.scenario-btn .desc{font-size:9px;color:var(--text3);line-height:1.4;margin-top:3px}
+
+/* Tax comparison boxes */
+.tax-box{flex:1;min-width:140px;border-radius:12px;padding:18px;text-align:center}
+.tax-box .label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.tax-box .big{font-size:30px;font-weight:800;font-family:monospace;margin:8px 0}
+.tax-box .sub{font-size:10px;color:var(--text3)}
+
+/* Learn items */
+.learn-item{padding:12px 0;border-bottom:1px solid var(--surface);display:flex;gap:10px;align-items:flex-start}
+.learn-item:last-child{border-bottom:none}
+.learn-item .icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.learn-item .term{font-size:13px;font-weight:700}
+.learn-item .def{font-size:11px;color:var(--text2);line-height:1.6;margin-top:3px}
+
+/* Bond type rows */
+.bond-type{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--surface);align-items:flex-start}
+.bond-type:last-child{border-bottom:none}
+.bond-type .bar{width:4px;height:42px;border-radius:2px;flex-shrink:0;margin-top:2px}
+.bond-type .head{display:flex;justify-content:space-between;align-items:baseline}
+.bond-type .name{font-size:13px;font-weight:700}
+.bond-type .sub{font-size:9px;color:var(--text3)}
+.bond-type .desc{font-size:11px;color:var(--text2);line-height:1.6;margin-top:3px}
+.bond-type .badges{display:flex;gap:6px;margin-top:5px}
+.bond-type .badge{font-size:9px;padding:2px 7px;border-radius:4px;background:var(--surface);color:var(--text3)}
+
+/* Risk cards */
+.risk-card{border-radius:10px;padding:13px 16px;margin-bottom:10px}
+.risk-card .title{font-size:12px;font-weight:700;margin-bottom:5px}
+.risk-card .text{font-size:11px;color:var(--text2);line-height:1.7}
+
+/* Payment bar chart */
+.bar-chart{display:flex;gap:3px;align-items:flex-end;height:80px;padding:0 4px;margin-top:8px}
+.bar-chart .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bar-chart .bar-top{font-size:7px;color:var(--text3)}
+.bar-chart .bar-fill{width:100%;border-radius:3px 3px 0 0}
+.bar-chart .bar-label{font-size:7px;color:var(--text3)}
+.bar-chart-sub{text-align:center;font-size:9px;color:var(--text3);margin-top:5px}
+
+/* Input grid */
+.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.input-group label{font-size:11px;color:var(--text3);display:block;margin-bottom:5px}
+
+/* Panels */
+.panel{display:none}
+.panel.active{display:block}
+
+/* Seesaw animation */
+.seesaw-svg{display:block;margin:0 auto;max-width:420px}
+
+/* Mobile */
+@media(max-width:600px){
+  .scenario-grid{grid-template-columns:1fr}
+  .input-grid{grid-template-columns:1fr}
+  .header h1{font-size:26px}
+  .stats{gap:8px}
+  .stat-value{font-size:17px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Bond Lab</h1>
+  <p>Interactive Bond Education & Calculator</p>
+</div>
+
+<div class="nav" id="nav">
+  <button class="nav-btn active" onclick="switchTab('seesaw')">🎢 Seesaw</button>
+  <button class="nav-btn" onclick="switchTab('calc')">🧮 Calculator</button>
+  <button class="nav-btn" onclick="switchTab('scenarios')">🌪️ Scenarios</button>
+  <button class="nav-btn" onclick="switchTab('tax')">💰 Tax Yield</button>
+  <button class="nav-btn" onclick="switchTab('learn')">📚 Learn</button>
+</div>
+
+<div class="container">
+
+<!-- ==================== SEESAW TAB ==================== -->
+<div class="panel active" id="panel-seesaw">
+  <div class="card">
+    <div class="card-title"><span>⚖️</span><span>The Inverse Relationship</span></div>
+    <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:14px">
+      Bond prices and interest rates move in <strong style="color:var(--accent)">opposite directions</strong> — like a seesaw.
+      When one goes up, the other must come down. Drag the market rate slider to see it in action.
+    </p>
+
+    <div style="text-align:center;padding:14px 0 8px;user-select:none">
+      <div style="font-size:11px;color:var(--text3);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">The Bond Seesaw</div>
+      <svg id="seesawSvg" viewBox="0 0 400 200" class="seesaw-svg">
+        <polygon points="200,190 180,155 220,155" fill="var(--accent)" opacity="0.9"/>
+        <text x="200" y="198" text-anchor="middle" fill="var(--text3)" font-size="8" font-family="monospace">FULCRUM</text>
+        <g id="seesawBoard" style="transform-origin:200px 155px">
+          <rect x="30" y="148" width="340" height="10" rx="5" fill="var(--surface)" stroke="var(--card-border)" stroke-width="1"/>
+          <circle id="priceCircle" cx="80" cy="130" r="32" fill="var(--green-dim)" stroke="var(--green)" stroke-width="1.5"/>
+          <text x="80" y="125" text-anchor="middle" id="priceLabelTop" fill="var(--green)" font-size="11" font-weight="700" font-family="monospace">PRICE</text>
+          <text x="80" y="140" text-anchor="middle" id="priceLabelBot" fill="var(--green)" font-size="10" font-family="monospace">▲ 0.0%</text>
+          <circle cx="320" cy="130" r="32" fill="var(--blue-dim)" stroke="var(--blue)" stroke-width="1.5"/>
+          <text x="320" y="125" text-anchor="middle" fill="var(--blue)" font-size="11" font-weight="700" font-family="monospace">YIELD</text>
+          <text x="320" y="140" text-anchor="middle" id="yieldLabel" fill="var(--blue)" font-size="10" font-family="monospace">5.00%</text>
+        </g>
+        <text x="80" y="88" text-anchor="middle" fill="var(--text3)" font-size="8" font-family="monospace">When rates go UP</text>
+        <text x="80" y="97" text-anchor="middle" fill="var(--text3)" font-size="8" font-family="monospace">prices go DOWN</text>
+        <text x="320" y="88" text-anchor="middle" fill="var(--text3)" font-size="8" font-family="monospace">When rates go DOWN</text>
+        <text x="320" y="97" text-anchor="middle" fill="var(--text3)" font-size="8" font-family="monospace">prices go UP</text>
+      </svg>
+    </div>
+
+    <div class="slider-row">
+      <div class="slider-label"><label>Market Interest Rate</label><span class="val" id="marketRateVal" style="color:var(--blue)">5.00%</span></div>
+      <div class="slider-sub">The current rate new bonds are being issued at</div>
+      <input type="range" id="marketRateSlider" min="0.5" max="12" step="0.25" value="5" style="accent-color:var(--blue)" oninput="updateAll()">
+      <div class="slider-range"><span>0.5%</span><span>12%</span></div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-label"><label>Your Bond's Coupon Rate</label><span class="val" id="couponRateVal" style="color:var(--green)">5.00%</span></div>
+      <div class="slider-sub">The fixed rate your bond pays annually</div>
+      <input type="range" id="couponRateSlider" min="0.5" max="12" step="0.25" value="5" style="accent-color:var(--green)" oninput="updateAll()">
+      <div class="slider-range"><span>0.5%</span><span>12%</span></div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-label"><label>Years to Maturity</label><span class="val" id="maturityVal" style="color:var(--purple)">10 yrs</span></div>
+      <div class="slider-sub">Longer maturity = more sensitivity to rate changes</div>
+      <input type="range" id="maturitySlider" min="1" max="30" step="1" value="10" style="accent-color:var(--purple)" oninput="updateAll()">
+      <div class="slider-range"><span>1 yr</span><span>30 yrs</span></div>
+    </div>
+
+    <div class="stats" id="seesawStats"></div>
+    <div id="seesawAnalogy"></div>
+    <div id="seesawExplainer" class="info-box" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- ==================== CALCULATOR TAB ==================== -->
+<div class="panel" id="panel-calc">
+  <div class="card blue">
+    <div class="card-title"><span>🧮</span><span>Bond Payment Calculator</span></div>
+    <div class="input-grid">
+      <div class="input-group"><label>Face Value ($)</label><input type="number" id="faceValueInput" value="1000" oninput="updateAll()"></div>
+      <div class="input-group"><label>Coupon Rate (%)</label><input type="number" id="couponInput" value="5" step="0.25" oninput="updateAll()"></div>
+      <div class="input-group"><label>Years to Maturity</label><input type="number" id="maturityInput" value="10" oninput="updateAll()"></div>
+      <div class="input-group"><label>Market Rate (%)</label><input type="number" id="marketInput" value="5" step="0.25" oninput="updateAll()"></div>
+    </div>
+  </div>
+  <div class="card green">
+    <div class="card-title"><span>💵</span><span>Payment Breakdown</span></div>
+    <div class="stats" id="calcStats1" style="margin-bottom:16px"></div>
+    <div class="stats" id="calcStats2" style="margin-bottom:16px"></div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Payment Timeline</div>
+    <div class="bar-chart" id="barChart"></div>
+    <div class="bar-chart-sub" id="barChartSub"></div>
+    <div id="calcAnalogy"></div>
+  </div>
+  <div class="card purple" id="premDiscCard"></div>
+</div>
+
+<!-- ==================== SCENARIOS TAB ==================== -->
+<div class="panel" id="panel-scenarios">
+  <div class="card purple">
+    <div class="card-title"><span>🌪️</span><span>Economic Scenario Simulator</span></div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:16px">Tap a scenario to see how it impacts your bond. Or adjust the sliders manually.</p>
+    <div class="scenario-grid" id="scenarioGrid"></div>
+  </div>
+  <div class="card blue">
+    <div class="card-title"><span>🎛️</span><span>Adjust Conditions</span></div>
+    <div class="slider-row">
+      <div class="slider-label"><label>Fed Funds Rate</label><span class="val" id="fedRateVal" style="color:var(--blue)">4.50%</span></div>
+      <div class="slider-sub">The baseline rate set by the Federal Reserve</div>
+      <input type="range" id="fedRateSlider" min="0" max="10" step="0.25" value="4.5" style="accent-color:var(--blue)" oninput="updateFromFed()">
+      <div class="slider-range"><span>0%</span><span>10%</span></div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-label"><label>Inflation Rate</label><span class="val" id="inflationVal" style="color:var(--red)">2.50%</span></div>
+      <div class="slider-sub">How fast prices are rising in the economy</div>
+      <input type="range" id="inflationSlider" min="-1" max="10" step="0.25" value="2.5" style="accent-color:var(--red)" oninput="updateAll()">
+      <div class="slider-range"><span>-1%</span><span>10%</span></div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-label"><label>Your Bond's Coupon</label><span class="val" id="scenCouponVal" style="color:var(--green)">5.00%</span></div>
+      <input type="range" id="scenCouponSlider" min="0.5" max="12" step="0.25" value="5" style="accent-color:var(--green)" oninput="updateAll()">
+    </div>
+    <div class="slider-row">
+      <div class="slider-label"><label>Maturity</label><span class="val" id="scenMatVal" style="color:var(--purple)">10 yrs</span></div>
+      <input type="range" id="scenMatSlider" min="1" max="30" step="1" value="10" style="accent-color:var(--purple)" oninput="updateAll()">
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>📊</span><span>Impact Analysis</span></div>
+    <div class="stats" id="scenarioStats" style="margin-bottom:12px"></div>
+    <div style="text-align:center;padding:8px 0;user-select:none">
+      <svg id="scenSeesawSvg" viewBox="0 0 400 200" class="seesaw-svg">
+        <polygon points="200,190 180,155 220,155" fill="var(--accent)" opacity="0.9"/>
+        <g id="scenSeesawBoard" style="transform-origin:200px 155px">
+          <rect x="30" y="148" width="340" height="10" rx="5" fill="var(--surface)" stroke="var(--card-border)" stroke-width="1"/>
+          <circle id="scenPriceCircle" cx="80" cy="130" r="32" fill="var(--green-dim)" stroke="var(--green)" stroke-width="1.5"/>
+          <text x="80" y="125" text-anchor="middle" id="scenPriceLabelTop" fill="var(--green)" font-size="11" font-weight="700" font-family="monospace">PRICE</text>
+          <text x="80" y="140" text-anchor="middle" id="scenPriceLabelBot" fill="var(--green)" font-size="10" font-family="monospace">▲ 0.0%</text>
+          <circle cx="320" cy="130" r="32" fill="var(--blue-dim)" stroke="var(--blue)" stroke-width="1.5"/>
+          <text x="320" y="125" text-anchor="middle" fill="var(--blue)" font-size="11" font-weight="700" font-family="monospace">YIELD</text>
+          <text x="320" y="140" text-anchor="middle" id="scenYieldLabel" fill="var(--blue)" font-size="10" font-family="monospace">5.00%</text>
+        </g>
+      </svg>
+    </div>
+    <div id="scenarioAlerts"></div>
+    <div id="scenarioAnalogy"></div>
+  </div>
+</div>
+
+<!-- ==================== TAX YIELD TAB ==================== -->
+<div class="panel" id="panel-tax">
+  <div class="card green">
+    <div class="card-title"><span>💰</span><span>Tax-Equivalent Yield Calculator</span></div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:16px">
+      Municipal bonds are tax-free, but is a 3.5% muni better than a 5% taxable bond? It depends on your tax bracket.
+    </p>
+    <div class="slider-row">
+      <div class="slider-label"><label>Municipal Bond Yield</label><span class="val" id="muniYieldVal" style="color:var(--green)">3.50%</span></div>
+      <div class="slider-sub">The tax-free yield on the muni bond</div>
+      <input type="range" id="muniYieldSlider" min="0.5" max="8" step="0.1" value="3.5" style="accent-color:var(--green)" oninput="updateAll()">
+      <div class="slider-range"><span>0.5%</span><span>8%</span></div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-label"><label>Your Federal Tax Bracket</label><span class="val" id="taxBracketVal" style="color:var(--accent)">32%</span></div>
+      <div class="slider-sub">Higher bracket = bigger tax advantage for munis</div>
+      <input type="range" id="taxBracketSlider" min="10" max="50" step="1" value="32" style="accent-color:var(--accent)" oninput="updateAll()">
+      <div class="slider-range"><span>10%</span><span>50%</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>⚖️</span><span>The Comparison</span></div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+      <div class="tax-box" style="background:var(--green-dim);border:1.5px solid var(--green)">
+        <div class="label" style="color:var(--green)">Muni (Tax-Free)</div>
+        <div class="big" style="color:var(--green)" id="taxMuniYield">3.50%</div>
+        <div class="sub">You keep every penny</div>
+      </div>
+      <div style="font-size:22px;color:var(--text3)">=</div>
+      <div class="tax-box" style="background:var(--blue-dim);border:1.5px solid var(--blue)">
+        <div class="label" style="color:var(--blue)">Taxable Equivalent</div>
+        <div class="big" style="color:var(--blue)" id="taxEquivYield">5.15%</div>
+        <div class="sub">What taxable needs to pay to match</div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border-radius:10px;padding:14px 16px;margin-bottom:12px">
+      <div id="taxMathExplain" style="font-size:12px;color:var(--text2);line-height:1.7"></div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">On a $10,000 Investment</div>
+    <div class="input-grid" id="taxCompGrid"></div>
+    <div id="taxAnalogy"></div>
+    <div class="info-box" style="margin-top:14px">
+      <strong>Quick rule of thumb:</strong> The higher your tax bracket, the more munis make sense. If you're in the 32%+ bracket, munis almost always win unless taxable bonds offer significantly higher yields. In the 10-22% range, taxable bonds often come out ahead.
+    </div>
+  </div>
+</div>
+
+<!-- ==================== LEARN TAB ==================== -->
+<div class="panel" id="panel-learn">
+  <div class="card">
+    <div class="card-title"><span>📜</span><span>What is a Bond?</span></div>
+    <p style="font-size:13px;color:var(--text2);line-height:1.8">
+      A bond is an IOU. You lend money to a government or company, and they promise to pay you back with interest. It's like being the bank — instead of borrowing money, you're the one lending it.
+    </p>
+    <div class="analogy">
+      <div class="analogy-title">💡 The Friend Analogy</div>
+      <div class="analogy-text">Your friend asks to borrow $1,000 for 10 years. They promise to pay you $50 every year as a thank-you (the coupon), and give you the full $1,000 back at the end (the face value). That's a bond at 5%.</div>
+    </div>
+  </div>
+
+  <div class="card blue">
+    <div class="card-title"><span>📖</span><span>Key Terms</span></div>
+    <div class="learn-item"><div class="icon">🏷️</div><div><div class="term">Face Value (Par)</div><div class="def">The amount you get back at maturity. Usually $1,000. Think of it as the sticker price.</div></div></div>
+    <div class="learn-item"><div class="icon">💵</div><div><div class="term">Coupon Rate</div><div class="def">The annual interest rate the bond pays, based on face value. A 5% coupon on a $1,000 bond = $50/year.</div></div></div>
+    <div class="learn-item"><div class="icon">📅</div><div><div class="term">Maturity</div><div class="def">When you get your money back. Ranges from 3 months (T-bills) to 30 years (long bonds).</div></div></div>
+    <div class="learn-item"><div class="icon">📈</div><div><div class="term">Yield</div><div class="def">Your actual return based on what you paid. If you bought a 5% coupon bond at a discount ($950), your yield is higher than 5%.</div></div></div>
+    <div class="learn-item"><div class="icon">⚖️</div><div><div class="term">Duration</div><div class="def">How sensitive your bond is to rate changes. Longer duration = bigger price swings. It's like a longer lever on the seesaw.</div></div></div>
+    <div class="learn-item"><div class="icon">🎲</div><div><div class="term">Credit Risk</div><div class="def">The chance the borrower can't pay you back. US Treasuries = almost zero risk. Corporate junk bonds = higher risk, higher yield.</div></div></div>
+  </div>
+
+  <div class="card green">
+    <div class="card-title"><span>🗂️</span><span>Types of Bonds</span></div>
+    <div class="bond-type"><div class="bar" style="background:var(--blue)"></div><div style="flex:1"><div class="head"><div class="name">Treasury Bonds</div><div class="sub">US Government</div></div><div class="desc">Backed by the full faith of the US government. The gold standard of safe investments.</div><div class="badges"><span class="badge">Risk: Lowest</span><span class="badge">Yield: Lower</span></div></div></div>
+    <div class="bond-type"><div class="bar" style="background:var(--green)"></div><div style="flex:1"><div class="head"><div class="name">Municipal Bonds</div><div class="sub">State/Local Gov</div></div><div class="desc">Fund roads, schools, hospitals. Interest is usually tax-free — great for high earners.</div><div class="badges"><span class="badge">Risk: Low</span><span class="badge">Yield: Tax-Free</span></div></div></div>
+    <div class="bond-type"><div class="bar" style="background:var(--accent)"></div><div style="flex:1"><div class="head"><div class="name">Corporate Bonds</div><div class="sub">Companies</div></div><div class="desc">Apple, Microsoft, or riskier companies. Higher yield compensates for more risk.</div><div class="badges"><span class="badge">Risk: Medium</span><span class="badge">Yield: Higher</span></div></div></div>
+    <div class="bond-type"><div class="bar" style="background:var(--red)"></div><div style="flex:1"><div class="head"><div class="name">High-Yield (Junk)</div><div class="sub">Risky Companies</div></div><div class="desc">Companies with shaky finances. Pays more because there's a real chance they don't pay you back.</div><div class="badges"><span class="badge">Risk: High</span><span class="badge">Yield: Highest</span></div></div></div>
+    <div class="bond-type"><div class="bar" style="background:var(--purple)"></div><div style="flex:1"><div class="head"><div class="name">TIPS</div><div class="sub">Inflation-Protected</div></div><div class="desc">Treasury bonds that adjust for inflation. Your purchasing power is protected.</div><div class="badges"><span class="badge">Risk: Lowest</span><span class="badge">Yield: Real</span></div></div></div>
+  </div>
+
+  <div class="card red">
+    <div class="card-title"><span>⚠️</span><span>The 3 Risks Every Bond Investor Faces</span></div>
+    <div class="risk-card" style="background:var(--blue-dim)"><div class="title" style="color:var(--blue)">1. Interest Rate Risk</div><div class="text">When rates rise, your bond's price falls. The longer the maturity, the harder the hit. A 30-year bond might drop 20% if rates jump 1%, while a 2-year bond barely moves.</div></div>
+    <div class="risk-card" style="background:var(--red-dim)"><div class="title" style="color:var(--red)">2. Inflation Risk</div><div class="text">If your bond pays 4% but inflation is 5%, you're losing 1% of purchasing power every year. Your check comes in the mail, but it buys less groceries each time.</div></div>
+    <div class="risk-card" style="background:var(--purple-dim)"><div class="title" style="color:var(--purple)">3. Credit / Default Risk</div><div class="text">The borrower might not pay you back. US Treasuries? Almost zero risk. A startup's bond? They might go bankrupt. The yield premium on riskier bonds compensates for this — but sometimes it's not enough.</div></div>
+  </div>
+</div>
+
+</div><!-- end container -->
+
+<script>
+// ============================================================
+//  STATE
+// ============================================================
+let activeScenario = null;
+
+const SCENARIOS = [
+  { name:"Normal Economy", icon:"☀️", fedRate:4.5, inflation:2.5, desc:"Steady growth, moderate inflation, no surprises." },
+  { name:"Fed Rate Hike", icon:"📈", fedRate:6.5, inflation:3.5, desc:"The Fed raises rates aggressively to fight inflation. Bond prices drop." },
+  { name:"Fed Rate Cut", icon:"📉", fedRate:2.0, inflation:1.5, desc:"The Fed slashes rates to stimulate growth. Existing bonds become more valuable." },
+  { name:"High Inflation", icon:"🔥", fedRate:5.5, inflation:6.0, desc:"Inflation surges. Real returns get crushed even if nominal yields look OK." },
+  { name:"Recession", icon:"🌧️", fedRate:1.5, inflation:0.5, desc:"Economic contraction. Flight to safety drives bond prices up sharply." },
+  { name:"Black Swan", icon:"🦢", fedRate:0.5, inflation:-0.5, desc:"Panic. Investors flee to Treasuries. Yields plummet, prices soar." },
+  { name:"Stagflation", icon:"🪨", fedRate:5.0, inflation:7.0, desc:"High inflation + stagnant economy. Bonds struggle on both fronts." },
+];
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function g(id) { return document.getElementById(id); }
+function v(id) { return parseFloat(g(id).value); }
+
+function calcBondPrice(face, couponRate, years, marketRate) {
+  const c = (face * couponRate) / 2;
+  const n = years * 2;
+  const r = marketRate / 2;
+  if (r === 0) return face + c * n;
+  let price = 0;
+  for (let i = 1; i <= n; i++) price += c / Math.pow(1 + r, i);
+  price += face / Math.pow(1 + r, n);
+  return price;
+}
+
+function statHTML(label, value, color, sub) {
+  return `<div class="stat"><div class="stat-label">${label}</div><div class="stat-value" style="color:${color}">${value}</div>${sub ? `<div class="stat-sub">${sub}</div>` : ''}</div>`;
+}
+
+function analogyHTML(title, text, icon) {
+  return `<div class="analogy"><div class="analogy-title">${icon || '💡'} ${title}</div><div class="analogy-text">${text}</div></div>`;
+}
+
+// ============================================================
+//  TAB SWITCHING
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  g('panel-' + tab).classList.add('active');
+  event.target.closest('.nav-btn').classList.add('active');
+  updateAll();
+}
+
+// ============================================================
+//  SEESAW UPDATE
+// ============================================================
+function updateSeesaw(boardId, priceCircleId, priceLabelTopId, priceLabelBotId, yieldLabelId, priceChange, marketRate) {
+  const tilt = Math.max(-30, Math.min(30, priceChange * 3));
+  g(boardId).style.transform = `rotate(${tilt}deg)`;
+  
+  const isUp = priceChange >= 0;
+  const pColor = isUp ? 'var(--green)' : 'var(--red)';
+  const pFill = isUp ? 'var(--green-dim)' : 'var(--red-dim)';
+  const pStroke = isUp ? 'var(--green)' : 'var(--red)';
+  
+  g(priceCircleId).setAttribute('fill', pFill);
+  g(priceCircleId).setAttribute('stroke', pStroke);
+  g(priceLabelTopId).setAttribute('fill', pColor);
+  g(priceLabelBotId).setAttribute('fill', pColor);
+  g(priceLabelBotId).textContent = `${isUp ? '▲' : '▼'} ${Math.abs(priceChange).toFixed(1)}%`;
+  g(yieldLabelId).textContent = marketRate.toFixed(2) + '%';
+}
+
+// ============================================================
+//  SCENARIO GRID
+// ============================================================
+function buildScenarioGrid() {
+  g('scenarioGrid').innerHTML = SCENARIOS.map((s, i) => `
+    <button class="scenario-btn ${activeScenario === i ? 'active' : ''}" onclick="applyScenario(${i})">
+      <div class="icon">${s.icon}</div>
+      <div class="name">${s.name}</div>
+      <div class="desc">${s.desc}</div>
+    </button>
+  `).join('');
+}
+
+function applyScenario(i) {
+  const s = SCENARIOS[i];
+  activeScenario = i;
+  g('fedRateSlider').value = s.fedRate;
+  g('inflationSlider').value = s.inflation;
+  g('marketRateSlider').value = s.fedRate + 0.5;
+  g('scenCouponSlider').value = v('couponRateSlider');
+  g('scenMatSlider').value = v('maturitySlider');
+  buildScenarioGrid();
+  updateAll();
+}
+
+function updateFromFed() {
+  activeScenario = null;
+  const fed = v('fedRateSlider');
+  g('marketRateSlider').value = fed + 0.5;
+  buildScenarioGrid();
+  updateAll();
+}
+
+// ============================================================
+//  MAIN UPDATE
+// ============================================================
+function updateAll() {
+  const face = parseFloat(g('faceValueInput').value) || 1000;
+  const coupon = v('couponRateSlider');
+  const mat = v('maturitySlider');
+  const market = v('marketRateSlider');
+  const fed = v('fedRateSlider');
+  const inflation = v('inflationSlider');
+  const muniYield = v('muniYieldSlider');
+  const taxBracket = v('taxBracketSlider');
+
+  // Sync inputs
+  g('couponInput').value = coupon;
+  g('maturityInput').value = mat;
+  g('marketInput').value = market;
+  g('faceValueInput').value = face;
+  g('scenCouponSlider').value = coupon;
+  g('scenMatSlider').value = mat;
+
+  // Display values
+  g('marketRateVal').textContent = market.toFixed(2) + '%';
+  g('couponRateVal').textContent = coupon.toFixed(2) + '%';
+  g('maturityVal').textContent = mat + ' yrs';
+  g('fedRateVal').textContent = fed.toFixed(2) + '%';
+  g('inflationVal').textContent = inflation.toFixed(2) + '%';
+  g('scenCouponVal').textContent = coupon.toFixed(2) + '%';
+  g('scenMatVal').textContent = mat + ' yrs';
+  g('muniYieldVal').textContent = muniYield.toFixed(2) + '%';
+  g('taxBracketVal').textContent = taxBracket + '%';
+
+  // Calculations
+  const bondPrice = calcBondPrice(face, coupon / 100, mat, market / 100);
+  const priceChange = ((bondPrice - face) / face) * 100;
+  const annualCoupon = face * (coupon / 100);
+  const semiCoupon = annualCoupon / 2;
+  const currentYield = bondPrice > 0 ? (annualCoupon / bondPrice) * 100 : 0;
+  const realReturn = market - inflation;
+  const totalCoupons = annualCoupon * mat;
+  const totalReturn = totalCoupons + face - bondPrice;
+  const annualized = bondPrice > 0 ? (Math.pow((face + totalCoupons) / bondPrice, 1 / mat) - 1) * 100 : 0;
+  const taxEquiv = muniYield / (1 - taxBracket / 100);
+
+  // ---- SEESAW TAB ----
+  updateSeesaw('seesawBoard', 'priceCircle', 'priceLabelTop', 'priceLabelBot', 'yieldLabel', priceChange, market);
+  
+  const pc = priceChange >= 0 ? 'var(--green)' : 'var(--red)';
+  g('seesawStats').innerHTML = 
+    statHTML('Bond Price', '$' + bondPrice.toFixed(2), pc, (priceChange >= 0 ? '+' : '') + priceChange.toFixed(1) + '% from par') +
+    statHTML('Current Yield', currentYield.toFixed(2) + '%', 'var(--blue)', 'Annual coupon ÷ price') +
+    statHTML('Annual Payment', '$' + annualCoupon.toFixed(0), 'var(--accent)', '$' + semiCoupon.toFixed(0) + ' every 6 months');
+
+  // Analogy
+  let aTitle, aText;
+  if (priceChange > 5) { aTitle = "You're holding a winning lottery ticket"; aText = `Your bond was locked in at ${coupon}% when new bonds only pay ${market.toFixed(1)}%. That's like having a lease locked in at a low rent while everyone else's rent went up. Investors will pay a premium for your higher payments.`; }
+  else if (priceChange < -5) { aTitle = "You're renting at above-market rates"; aText = `Your bond's ${coupon}% coupon is less attractive now that new bonds pay ${market.toFixed(1)}%. It's like owning a rental property where rents dropped — you'd have to lower the selling price to attract buyers.`; }
+  else if (inflation > market) { aTitle = "Your money is melting ice cream"; aText = `Inflation at ${inflation}% is eating your ${market.toFixed(1)}% yield. Every year, you're getting paid but losing purchasing power. Your ice cream cone is melting faster than you can eat it.`; }
+  else { aTitle = "You're on steady ground"; aText = `With a ${coupon}% coupon and ${market.toFixed(1)}% market rate, your bond is priced near par. Like a fixed-rate savings account that's roughly in line with what banks currently offer.`; }
+  g('seesawAnalogy').innerHTML = analogyHTML(aTitle, aText);
+
+  g('seesawExplainer').innerHTML = `<strong>Why does this happen?</strong><br>Imagine you own a bond paying ${coupon}%. If new bonds start paying ${market > coupon ? market.toFixed(1) : (coupon + 2).toFixed(1)}%, nobody wants yours at full price — they can get more elsewhere. So your bond's price drops until its effective yield matches the market. The reverse is also true: if new bonds only pay ${market < coupon ? market.toFixed(1) : (coupon - 2 > 0 ? (coupon - 2).toFixed(1) : '1.0')}%, your ${coupon}% bond becomes a hot commodity and its price rises.`;
+
+  // ---- CALCULATOR TAB ----
+  g('calcStats1').innerHTML =
+    statHTML('Purchase Price', '$' + bondPrice.toFixed(2), pc) +
+    statHTML('Semi-Annual Pmt', '$' + semiCoupon.toFixed(2), 'var(--accent)') +
+    statHTML('Annual Income', '$' + annualCoupon.toFixed(0), 'var(--blue)');
+
+  g('calcStats2').innerHTML =
+    statHTML('Total Coupons', '$' + totalCoupons.toFixed(0), 'var(--text)', 'Over ' + mat + ' years') +
+    statHTML('Total Return', '$' + totalReturn.toFixed(0), totalReturn >= 0 ? 'var(--green)' : 'var(--red)', 'Coupons + principal gain/loss') +
+    statHTML('Annualized', annualized.toFixed(2) + '%', 'var(--purple)', 'Effective annual return');
+
+  // Bar chart
+  const years = Math.min(mat, 30);
+  let bars = '';
+  for (let i = 0; i < years; i++) {
+    const isLast = i === years - 1;
+    const pmt = isLast ? annualCoupon + face : annualCoupon;
+    const maxPmt = annualCoupon + face;
+    const h = (pmt / maxPmt) * 70;
+    bars += `<div class="bar-col">
+      <div class="bar-top">${isLast ? '$' + pmt.toFixed(0) : ''}</div>
+      <div class="bar-fill" style="height:${h}px;background:${isLast ? 'var(--accent)' : 'var(--blue)'};opacity:${isLast ? 1 : 0.6}"></div>
+      <div class="bar-label">${i + 1}</div>
+    </div>`;
+  }
+  g('barChart').innerHTML = bars;
+  g('barChartSub').textContent = `Year → (last bar includes $${face.toFixed(0)} principal return)`;
+
+  g('calcAnalogy').innerHTML = analogyHTML('Think of it like a rental property',
+    `You ${bondPrice > face ? 'paid a premium' : bondPrice < face ? 'got a discount' : 'paid par'} ($${bondPrice.toFixed(0)}) for a property that generates $${annualCoupon.toFixed(0)}/yr in rent for ${mat} years, then you sell the building for $${face.toFixed(0)}. Your total cash flow is $${(totalCoupons + face).toFixed(0)} on a $${bondPrice.toFixed(0)} investment.`);
+
+  // Premium/Discount
+  let pdHTML;
+  if (bondPrice > face + 1) {
+    pdHTML = `<div class="card-title"><span>🏷️</span><span>Premium vs Discount</span></div><p style="font-size:12px;color:var(--text2);line-height:1.7"><strong style="color:var(--green)">Premium Bond</strong> — You're paying <strong>$${(bondPrice - face).toFixed(2)} above par</strong> because your coupon (${coupon}%) is higher than the market rate (${market}%). Think of it like buying a CD with a great locked-in rate — you pay extra upfront but collect bigger checks over time. At maturity you only get $${face} back, so part of your "return" is really just getting your premium back.</p>`;
+  } else if (bondPrice < face - 1) {
+    pdHTML = `<div class="card-title"><span>🏷️</span><span>Premium vs Discount</span></div><p style="font-size:12px;color:var(--text2);line-height:1.7"><strong style="color:var(--red)">Discount Bond</strong> — You're paying <strong>$${(face - bondPrice).toFixed(2)} below par</strong> because your coupon (${coupon}%) is lower than the market rate (${market}%). It's like buying a dented can at the grocery store — the contents are the same, you just get a discount. At maturity you get the full $${face}, pocketing the difference as profit.</p>`;
+  } else {
+    pdHTML = `<div class="card-title"><span>🏷️</span><span>Premium vs Discount</span></div><p style="font-size:12px;color:var(--text2);line-height:1.7"><strong style="color:var(--accent)">Par Bond</strong> — Your coupon rate roughly matches the market, so the bond trades near its face value. No premium, no discount — you get exactly what's on the label.</p>`;
+  }
+  g('premDiscCard').innerHTML = pdHTML;
+
+  // ---- SCENARIOS TAB ----
+  updateSeesaw('scenSeesawBoard', 'scenPriceCircle', 'scenPriceLabelTop', 'scenPriceLabelBot', 'scenYieldLabel', priceChange, market);
+  
+  g('scenarioStats').innerHTML =
+    statHTML('Bond Price', '$' + bondPrice.toFixed(2), pc, (priceChange >= 0 ? '+' : '') + priceChange.toFixed(1) + '% from par') +
+    statHTML('Market Yield', market.toFixed(2) + '%', 'var(--blue)') +
+    statHTML('Real Return', realReturn.toFixed(2) + '%', realReturn >= 0 ? 'var(--green)' : 'var(--red)', 'Yield minus inflation');
+
+  let alerts = '';
+  if (realReturn < 0) alerts += `<div class="alert red"><div class="alert-title">⚠️ Negative Real Return</div><div class="alert-text">Inflation (${inflation}%) exceeds your yield (${market.toFixed(1)}%). You're earning money on paper but losing purchasing power. It's like getting a 2% raise when everything costs 4% more — you're technically making more but can buy less.</div></div>`;
+  if (fed <= 1) alerts += `<div class="alert blue"><div class="alert-title">🏦 Near-Zero Rate Environment</div><div class="alert-text">When the Fed cuts rates this low, it's usually a crisis response. Existing bonds with higher coupons become extremely valuable — like having a job that pays well during a recession when everyone else is getting laid off.</div></div>`;
+  if (inflation > 5) alerts += `<div class="alert amber"><div class="alert-title">🔥 High Inflation Warning</div><div class="alert-text">At ${inflation}% inflation, consider TIPS (Treasury Inflation-Protected Securities) or I-Bonds. Regular bonds with fixed coupons are like having a fixed salary during hyperinflation — the number stays the same but what it buys shrinks every month.</div></div>`;
+  g('scenarioAlerts').innerHTML = alerts;
+
+  let sText;
+  if (fed > 5 && inflation > 5) sText = "This is stagflation territory — the economy is stagnant but prices keep rising. Bonds get hit from both sides: high rates push prices down, and high inflation eats your real return. Historically, commodities and TIPS perform better here.";
+  else if (fed <= 1) sText = "In a crisis/low-rate environment, the Fed is trying to jumpstart the economy by making borrowing cheap. If you already own bonds with higher coupons, congratulations — they're now worth a premium because new bonds pay almost nothing.";
+  else if (inflation > market) sText = "Your bond's yield isn't keeping up with inflation. Every coupon payment you receive buys a little less than the last one. Consider shorter-duration bonds or inflation-protected securities to preserve purchasing power.";
+  else if (priceChange > 3) sText = "Your bond is trading at a premium because its coupon is more attractive than what's currently available. If you sell now, you profit. If you hold to maturity, you still get your coupons but give back the premium at par.";
+  else if (priceChange < -3) sText = "Your bond is trading at a discount. New investors get a better deal than you did. But if you hold to maturity, you still get all your coupons plus the full face value — the paper loss only matters if you sell early.";
+  else sText = "Conditions are relatively stable. Your bond is priced near par, meaning the market roughly agrees your coupon is fair for current conditions.";
+  const sName = activeScenario !== null ? SCENARIOS[activeScenario].name : 'Current';
+  g('scenarioAnalogy').innerHTML = analogyHTML(sName + ' Scenario Explained', sText);
+
+  // ---- TAX TAB ----
+  g('taxMuniYield').textContent = muniYield.toFixed(2) + '%';
+  g('taxEquivYield').textContent = taxEquiv.toFixed(2) + '%';
+  g('taxMathExplain').innerHTML = `At a <strong style="color:var(--accent)">${taxBracket}% tax bracket</strong>, a taxable bond would need to yield <strong style="color:var(--blue)">${taxEquiv.toFixed(2)}%</strong> to match the muni's ${muniYield}% after taxes.<br><br><strong>The math:</strong> ${muniYield}% ÷ (1 - ${(taxBracket/100).toFixed(2)}) = ${muniYield}% ÷ ${(1 - taxBracket/100).toFixed(2)} = <strong style="color:var(--blue)">${taxEquiv.toFixed(2)}%</strong>`;
+
+  const muniIncome = (10000 * muniYield / 100).toFixed(0);
+  const taxableIncome = (10000 * taxEquiv / 100).toFixed(0);
+  const afterTaxIncome = (10000 * taxEquiv / 100 * (1 - taxBracket / 100)).toFixed(0);
+  g('taxCompGrid').innerHTML = `
+    <div style="background:var(--surface);border-radius:10px;padding:14px">
+      <div style="font-size:10px;color:var(--green)">Muni @ ${muniYield}%</div>
+      <div style="font-size:18px;font-weight:700;font-family:monospace;margin-top:4px">$${muniIncome}/yr</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">Tax-free income</div>
+    </div>
+    <div style="background:var(--surface);border-radius:10px;padding:14px">
+      <div style="font-size:10px;color:var(--blue)">Taxable @ ${taxEquiv.toFixed(1)}%</div>
+      <div style="font-size:18px;font-weight:700;font-family:monospace;margin-top:4px">$${taxableIncome}/yr</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">Before tax: $${taxableIncome} → After: $${afterTaxIncome}</div>
+    </div>`;
+
+  g('taxAnalogy').innerHTML = analogyHTML('The Grocery Store Analogy', `Imagine two stores sell the same cereal. Store A (muni) charges $${muniYield.toFixed(0) || '4'} with no sales tax. Store B (taxable) charges $${taxEquiv.toFixed(0) || '6'} but has ${taxBracket}% sales tax, making the real cost $${(taxEquiv * (1 - taxBracket / 100)).toFixed(1)} — the same as Store A. Any taxable bond paying LESS than ${taxEquiv.toFixed(1)}% is a worse deal than the muni for someone in your bracket.`, '🛒');
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+buildScenarioGrid();
+updateAll();
+</script>
+
+</body>
+</html>
